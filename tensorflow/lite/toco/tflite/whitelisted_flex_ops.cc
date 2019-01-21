@@ -455,6 +455,7 @@ bool IsWhitelistedFlexOp(const std::string& tensorflow_op_name) {
           "UniqueWithCounts",
           "UniqueWithCountsV2",
           "Unpack",
+          "Unstack",
           "UnsortedSegmentMax",
           "UnsortedSegmentMin",
           "UnsortedSegmentProd",

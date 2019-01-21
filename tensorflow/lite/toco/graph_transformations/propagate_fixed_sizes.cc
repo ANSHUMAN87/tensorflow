@@ -1466,6 +1466,43 @@ void ProcessPackOperator(Model* model, PackOperator* op) {
   output_array.copy_shape(*packed_shape);
 }
 
+void ProcessStackOperator(Model* model, StackOperator* op) {
+  CHECK_GE(op->inputs.size(), 1);
+  CHECK_EQ(op->outputs.size(), 1);
+  auto& output_array = model->GetArray(op->outputs[0]);
+  if (output_array.has_shape()) {
+    // Shape already propagated
+    return;
+  }
+
+  std::unique_ptr<Shape> stacked_shape;
+  for (const auto& input : op->inputs) {
+    const auto& input_array = model->GetArray(input);
+    if (!input_array.has_shape()) {
+      // Yield until all input dims have been resolved.
+      return;
+    }
+
+    Shape shape = input_array.shape();
+    if (!stacked_shape) {
+      stacked_shape.reset(new Shape(shape));
+    } else {
+      CHECK(*stacked_shape == shape) << "All input arrays to Stack operators "
+                                       "must have the same shape. Input \""
+                                    << input << "\" is different.";
+    }
+  }
+
+  int axis = op->axis;
+  if (axis < 0) {
+    // Handle negative axis
+    axis += stacked_shape->dims().size() + 1;
+  }
+  stacked_shape->mutable_dims()->insert(
+      stacked_shape->mutable_dims()->begin() + axis, op->inputs.size());
+  output_array.copy_shape(*stacked_shape);
+}
+
 void ProcessStridedSliceOperator(Model* model, StridedSliceOperator* op) {
   CHECK_GE(op->inputs.size(), 1);
   CHECK_EQ(op->outputs.size(), 1);
@@ -1823,6 +1860,32 @@ void ProcessUnpackOperator(Model* model, UnpackOperator* op) {
   }
 }
 
+void ProcessUnstackOperator(Model* model, UnstackOperator* op) {
+  CHECK_EQ(op->inputs.size(), 1);
+  const auto& input_array = model->GetArray(op->inputs[0]);
+  // Yield until input dims have been resolved.
+  if (!input_array.has_shape()) {
+    return;
+  }
+
+  const std::vector<int>& input_dims = input_array.shape().dims();
+  std::vector<int> output_dims;
+
+  output_dims.reserve(input_dims.size() - 1);
+  for (int i = 0; i < input_dims.size(); ++i) {
+    if (i != op->axis) {
+      output_dims.push_back(input_dims[i]);
+    }
+  }
+  for (const string& output_name : op->outputs) {
+    auto& output_array = model->GetArray(output_name);
+    if (output_array.has_shape()) {
+      return;
+    }
+    *output_array.mutable_shape()->mutable_dims() = output_dims;
+  }
+}
+
 void ProcessMirrorPadOperator(Model* model, MirrorPadOperator* op) {
   CHECK_EQ(op->inputs.size(), 2);
   const auto& input_array = model->GetArray(op->inputs[0]);
@@ -2059,6 +2122,9 @@ void ProcessUniqueOperator(Model* model, UniqueOperator* op) {
     case OperatorType::kPack:
       ProcessPackOperator(model, static_cast<PackOperator*>(op));
       break;
+    case OperatorType::kStack:
+      ProcessStackOperator(model, static_cast<StackOperator*>(op));
+      break;
     case OperatorType::kReorderAxes:
       ProcessReorderAxesOperator(model, static_cast<ReorderAxesOperator*>(op));
       break;
@@ -2158,6 +2224,9 @@ void ProcessUniqueOperator(Model* model, UniqueOperator* op) {
       break;
     case OperatorType::kUnpack:
       ProcessUnpackOperator(model, static_cast<UnpackOperator*>(op));
+      break;
+    case OperatorType::kUnstack:
+      ProcessUnstackOperator(model, static_cast<UnstackOperator*>(op));
       break;
     case OperatorType::kMirrorPad:
       ProcessMirrorPadOperator(model, static_cast<MirrorPadOperator*>(op));

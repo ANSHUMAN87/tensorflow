@@ -306,6 +306,7 @@ def generated_test_models():
         "square",
         "squared_difference",
         "squeeze",
+        "stack",
         "strided_slice",
         "strided_slice_1d_exhaustive",
         "strided_slice_buggy",
@@ -317,6 +318,7 @@ def generated_test_models():
         "unique",
         "unpack",
         "unroll_batch_matmul",
+        "unstack",
         "where",
         "zeros_like",
     ]

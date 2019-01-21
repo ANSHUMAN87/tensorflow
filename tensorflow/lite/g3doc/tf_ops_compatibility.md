@@ -918,6 +918,18 @@ Options {
 }
 ```
 
+**STACK**
+
+```
+Inputs {
+  0: a list of tensors.
+  1: an integer.
+}
+Outputs {
+  0: A tensor of stacked tensors.
+}
+```
+
 **STRIDED_SLICE**
 
 ```
@@ -977,6 +989,19 @@ Outputs {
 ```
 
 **UNPACK**
+
+```
+Inputs {
+  0: a tensor.
+  1: an integer.
+  2: an integer.
+}
+Outputs {
+  0-N: tensors of unpacked tensor.
+}
+```
+
+**UNSTACK**
 
 ```
 Inputs {

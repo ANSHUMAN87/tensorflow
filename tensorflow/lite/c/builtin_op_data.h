@@ -349,6 +349,11 @@ typedef struct {
 } TfLitePackParams;
 
 typedef struct {
+  int values_count;
+  int axis;
+} TfLiteStackParams;
+
+typedef struct {
   int axis;
 } TfLiteOneHotParams;
 
@@ -356,6 +361,11 @@ typedef struct {
   int num;
   int axis;
 } TfLiteUnpackParams;
+
+typedef struct {
+  int num;
+  int axis;
+} TfLiteUnstackParams;
 
 typedef struct {
   float alpha;

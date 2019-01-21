@@ -86,6 +86,7 @@ enum class OperatorType : uint8 {
   kSin,
   kSpaceToBatchND,
   kPack,
+  kStack,
   kBatchToSpaceND,
   kPad,
   kPadV2,
@@ -154,6 +155,7 @@ enum class OperatorType : uint8 {
   kLogicalOr,
   kCTCBeamSearchDecoder,
   kUnpack,
+  kUnstack,
   kZerosLike,
   kResizeNearestNeighbor,
   kLeakyRelu,
@@ -1287,6 +1289,23 @@ struct PackOperator : Operator {
   ArrayDataType dtype = ArrayDataType::kNone;
 };
 
+// Stacks a list of rank-R tensors into one rank-(R+1) tensor.
+//
+// Packs the list of tensors in values into a tensor with rank one higher than
+// each tensor in values, by packing them along the axis dimension. Given a list
+// of length N of tensors of shape (A, B, C);.
+//
+// Inputs: this operator accepts any number >= 1 of inputs.
+//   inputs[i]: the i-th array to merge.
+//
+// TensorFlow equivalent: Stack
+struct StackOperator : Operator {
+  StackOperator() : Operator(OperatorType::kStack) {}
+  int values_count;
+  int axis = 0;
+  ArrayDataType dtype = ArrayDataType::kNone;
+};
+
 // Shape operator. Extracts the shape of the tensor.
 //
 // Inputs:
@@ -1934,6 +1953,20 @@ struct LogicalOrOperator : Operator {
 // TensorFlow equivalent: tf.unstack.
 struct UnpackOperator : Operator {
   UnpackOperator() : Operator(OperatorType::kUnpack) {}
+  int num;
+  int axis;
+  ArrayDataType dtype = ArrayDataType::kNone;
+};
+
+// Unstack operator:
+//
+// Inputs:
+// Inputs[0]: required: A boolean input tensor.
+// Inputs[1]: required: reduction_indices.
+//
+// TensorFlow equivalent: tf.unstack.
+struct UnstackOperator : Operator {
+  UnstackOperator() : Operator(OperatorType::kUnstack) {}
   int num;
   int axis;
   ArrayDataType dtype = ArrayDataType::kNone;

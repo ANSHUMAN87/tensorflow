@@ -218,6 +218,8 @@ enum BuiltinOperator : byte {
   SPLIT_V = 102,
   UNIQUE = 103,
   CEIL = 104,
+  STACK = 105,
+  UNSTACK = 106,
 }
 
 // Options for the builtin operators.
@@ -281,11 +283,13 @@ union BuiltinOptions {
   ArgMinOptions,
   FakeQuantOptions,
   PackOptions,
+  StackOptions,
   LogicalOrOptions,
   OneHotOptions,
   LogicalAndOptions,
   LogicalNotOptions,
   UnpackOptions,
+  UnstackOptions,
   FloorDivOptions,
   SquareOptions,
   ZerosLikeOptions,
@@ -657,6 +661,11 @@ table PackOptions {
   axis:int;
 }
 
+table StackOptions {
+  values_count:int;
+  axis:int;
+}
+
 table LogicalOrOptions {
 }
 
@@ -675,6 +684,11 @@ table LogicalNotOptions {
 }
 
 table UnpackOptions {
+  num:int;
+  axis:int;
+}
+
+table UnstackOptions {
   num:int;
   axis:int;
 }

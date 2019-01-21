@@ -513,6 +513,16 @@ TEST_F(OperatorTest, BuiltinPack) {
   EXPECT_EQ(op.axis, output_toco_op->axis);
 }
 
+TEST_F(OperatorTest, BuiltinStack) {
+  StackOperator op;
+  op.values_count = 3;
+  op.axis = 1;
+  std::unique_ptr<toco::StackOperator> output_toco_op =
+      SerializeAndDeserialize(GetOperator("STACK", OperatorType::kStack), op);
+  EXPECT_EQ(op.values_count, output_toco_op->values_count);
+  EXPECT_EQ(op.axis, output_toco_op->axis);
+}
+
 TEST_F(OperatorTest, BuiltinOneHot) {
   OneHotOperator op;
   op.axis = 2;
@@ -527,6 +537,16 @@ TEST_F(OperatorTest, BuiltinUnpack) {
   op.axis = 2;
   auto output_toco_op =
       SerializeAndDeserialize(GetOperator("UNPACK", OperatorType::kUnpack), op);
+  EXPECT_EQ(op.num, output_toco_op->num);
+  EXPECT_EQ(op.axis, output_toco_op->axis);
+}
+
+TEST_F(OperatorTest, BuiltinUnstack) {
+  UnstackOperator op;
+  op.num = 5;
+  op.axis = 2;
+  auto output_toco_op =
+      SerializeAndDeserialize(GetOperator("UNSTACK", OperatorType::kUnstack), op);
   EXPECT_EQ(op.num, output_toco_op->num);
   EXPECT_EQ(op.axis, output_toco_op->axis);
 }

@@ -1343,6 +1343,20 @@ void ConvertPackOperator(const Model& model, const PackOperator& src_op,
       GetTensorFlowDataTypeForOp(src_op.dtype, src_op.outputs[0]));
 }
 
+void ConvertStackOperator(const Model& model, const StackOperator& src_op,
+                         GraphDef* tensorflow_graph) {
+  tensorflow::NodeDef* stack_op = tensorflow_graph->add_node();
+  stack_op->set_op("Stack");
+  stack_op->set_name(src_op.outputs[0]);
+  for (const auto& input : src_op.inputs) {
+    *stack_op->add_input() = input;
+  }
+  (*stack_op->mutable_attr())["axis"].set_i(src_op.axis);
+  (*stack_op->mutable_attr())["N"].set_i(src_op.inputs.size());
+  (*stack_op->mutable_attr())["T"].set_type(
+      GetTensorFlowDataTypeForOp(src_op.dtype, src_op.outputs[0]));
+}
+
 void ConvertFillOperator(const Model& model, const FillOperator& src_op,
                          GraphDef* tensorflow_graph) {
   tensorflow::NodeDef* fill_op = tensorflow_graph->add_node();
@@ -2049,6 +2063,20 @@ void ConvertUnpackOperator(const Model& model, const UnpackOperator& src_op,
   (*unpack_op->mutable_attr())["axis"].set_i(src_op.axis);
 }
 
+void ConvertUnstackOperator(const Model& model, const UnstackOperator& src_op,
+                           const char* op_name, GraphDef* tensorflow_graph) {
+  tensorflow::NodeDef* unstack_op = tensorflow_graph->add_node();
+  unstack_op->set_op(op_name);
+  unstack_op->set_name(src_op.outputs[0]);
+  CHECK_EQ(src_op.inputs.size(), 2);
+  *unstack_op->add_input() = src_op.inputs[0];
+  const tensorflow::DataType data_type =
+      GetTensorFlowDataType(model, src_op.inputs[0]);
+  (*unstack_op->mutable_attr())["T"].set_type(data_type);
+  (*unstack_op->mutable_attr())["num"].set_i(src_op.num);
+  (*unstack_op->mutable_attr())["axis"].set_i(src_op.axis);
+}
+
 void ConvertZerosLikeOperator(const Model& model,
                               const TensorFlowZerosLikeOperator& src_op,
                               const char* op_name, GraphDef* tensorflow_graph) {
@@ -2268,6 +2296,9 @@ void ConvertOperator(const Model& model, const Operator& src_op,
   } else if (src_op.type == OperatorType::kPack) {
     ConvertPackOperator(model, static_cast<const PackOperator&>(src_op),
                         tensorflow_graph);
+  } else if (src_op.type == OperatorType::kStack) {
+    ConvertStackOperator(model, static_cast<const StackOperator&>(src_op),
+                        tensorflow_graph);
   } else if (src_op.type == OperatorType::kFill) {
     ConvertFillOperator(model, static_cast<const FillOperator&>(src_op),
                         tensorflow_graph);
@@ -2337,6 +2368,9 @@ void ConvertOperator(const Model& model, const Operator& src_op,
   } else if (src_op.type == OperatorType::kUnpack) {
     ConvertUnpackOperator(model, static_cast<const UnpackOperator&>(src_op),
                           "Unpack", tensorflow_graph);
+  } else if (src_op.type == OperatorType::kUnstack) {
+    ConvertUnstackOperator(model, static_cast<const UnstackOperator&>(src_op),
+                          "Unstack", tensorflow_graph);
   } else if (src_op.type == OperatorType::kZerosLike) {
     ConvertZerosLikeOperator(
         model, static_cast<const TensorFlowZerosLikeOperator&>(src_op),

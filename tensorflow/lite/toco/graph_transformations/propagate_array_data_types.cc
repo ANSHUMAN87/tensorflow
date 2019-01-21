@@ -213,6 +213,14 @@ void SetDataTypeForAllOutputs(Model* model, Operator* op,
       SetDataTypeForAllOutputs(model, op, data_type);
       break;
     }
+    case OperatorType::kStack: {
+      const ArrayDataType data_type = model->GetArray(op->inputs[0]).data_type;
+      for (const auto& input : op->inputs) {
+        CHECK(data_type == model->GetArray(input).data_type);
+      }
+      SetDataTypeForAllOutputs(model, op, data_type);
+      break;
+    }
     case OperatorType::kOneHot: {
       CHECK_EQ(op->inputs.size(), 4);
       CHECK_EQ(op->outputs.size(), 1);
@@ -238,6 +246,15 @@ void SetDataTypeForAllOutputs(Model* model, Operator* op,
       break;
     }
     case OperatorType::kUnpack: {
+      CHECK_EQ(op->inputs.size(), 1);
+      const int output_size = op->outputs.size();
+      for (int i = 0; i < output_size; ++i) {
+        model->GetArray(op->outputs[i]).data_type =
+            model->GetArray(op->inputs[0]).data_type;
+      }
+      break;
+    }
+    case OperatorType::kUnstack: {
       CHECK_EQ(op->inputs.size(), 1);
       const int output_size = op->outputs.size();
       for (int i = 0; i < output_size; ++i) {

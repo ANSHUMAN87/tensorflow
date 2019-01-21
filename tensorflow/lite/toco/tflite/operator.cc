@@ -1334,6 +1334,28 @@ class Pack : public BuiltinOperator<PackOperator, ::tflite::PackOptions,
   }
 };
 
+class Stack : public BuiltinOperator<StackOperator, ::tflite::StackOptions,
+                                    ::tflite::BuiltinOptions_StackOptions> {
+ public:
+  using BuiltinOperator::BuiltinOperator;
+
+  flatbuffers::Offset<TfLiteOptions> WriteOptions(
+      const TocoOperator& op,
+      flatbuffers::FlatBufferBuilder* builder) const override {
+    return ::tflite::CreateStackOptions(*builder, op.values_count, op.axis);
+  }
+
+  void ReadOptions(const TfLiteOptions& options,
+                   TocoOperator* op) const override {
+    op->values_count = options.values_count();
+    op->axis = options.axis();
+  }
+
+  int GetVersion(const OperatorSignature& op_signature) const override {
+    return 1;
+  }
+};
+
 class Shape
     : public BuiltinOperator<TensorFlowShapeOperator, ::tflite::ShapeOptions,
                              ::tflite::BuiltinOptions_ShapeOptions> {
@@ -1406,6 +1428,26 @@ class Unpack : public BuiltinOperator<UnpackOperator, ::tflite::UnpackOptions,
       const TocoOperator& op,
       flatbuffers::FlatBufferBuilder* builder) const override {
     return ::tflite::CreateUnpackOptions(*builder, op.num, op.axis);
+  }
+  void ReadOptions(const TfLiteOptions& options,
+                   TocoOperator* op) const override {
+    op->num = options.num();
+    op->axis = options.axis();
+  }
+
+  int GetVersion(const OperatorSignature& op_signature) const override {
+    return 1;
+  }
+};
+
+class Unstack : public BuiltinOperator<UnstackOperator, ::tflite::UnstackOptions,
+                                      ::tflite::BuiltinOptions_UnstackOptions> {
+ public:
+  using BuiltinOperator::BuiltinOperator;
+  flatbuffers::Offset<TfLiteOptions> WriteOptions(
+      const TocoOperator& op,
+      flatbuffers::FlatBufferBuilder* builder) const override {
+    return ::tflite::CreateUnstackOptions(*builder, op.num, op.axis);
   }
   void ReadOptions(const TfLiteOptions& options,
                    TocoOperator* op) const override {
@@ -1879,6 +1921,8 @@ std::vector<std::unique_ptr<BaseOperator>> BuildOperatorList(
                                       OperatorType::kFakeQuant));
   ops.push_back(
       MakeUnique<Pack>(::tflite::BuiltinOperator_PACK, OperatorType::kPack));
+  ops.push_back(
+      MakeUnique<Stack>(::tflite::BuiltinOperator_STACK, OperatorType::kStack));
   ops.emplace_back(MakeUnique<UnidirectionalSequenceLstm>(
       ::tflite::BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM,
       OperatorType::kUnidirectionalSequenceLstm));
@@ -1886,6 +1930,8 @@ std::vector<std::unique_ptr<BaseOperator>> BuildOperatorList(
                                    OperatorType::kOneHot));
   ops.push_back(MakeUnique<Unpack>(::tflite::BuiltinOperator_UNPACK,
                                    OperatorType::kUnpack));
+  ops.push_back(MakeUnique<Unstack>(::tflite::BuiltinOperator_UNSTACK,
+                                   OperatorType::kUnstack));
   ops.push_back(MakeUnique<LeakyRelu>(::tflite::BuiltinOperator_LEAKY_RELU,
                                       OperatorType::kLeakyRelu));
   ops.push_back(MakeUnique<SquaredDifference>(

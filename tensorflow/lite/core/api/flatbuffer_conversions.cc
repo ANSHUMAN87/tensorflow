@@ -605,6 +605,15 @@ TfLiteStatus ParseOpData(const Operator* op, BuiltinOperator op_type,
       *builtin_data = reinterpret_cast<void*>(params);
       break;
     }
+    case BuiltinOperator_STACK: {
+      TfLiteStackParams* params = allocator->AllocatePOD<TfLiteStackParams>();
+      if (auto* stack_params = op->builtin_options_as_StackOptions()) {
+        params->values_count = stack_params->values_count();
+        params->axis = stack_params->axis();
+      }
+      *builtin_data = reinterpret_cast<void*>(params);
+      break;
+    }
     case BuiltinOperator_DELEGATE: {
       // TODO(ycling): Revisit when supporting saving delegated models.
       error_reporter->Report("DELEGATE op shouldn't exist in model.");
@@ -634,6 +643,15 @@ TfLiteStatus ParseOpData(const Operator* op, BuiltinOperator op_type,
       if (auto* unpack_params = op->builtin_options_as_UnpackOptions()) {
         params->num = unpack_params->num();
         params->axis = unpack_params->axis();
+      }
+      *builtin_data = reinterpret_cast<void*>(params);
+      break;
+    }
+    case BuiltinOperator_UNSTACK: {
+      TfLiteUnstackParams* params = allocator->AllocatePOD<TfLiteUnstackParams>();
+      if (auto* unstack_params = op->builtin_options_as_UnstackOptions()) {
+        params->num = unstack_params->num();
+        params->axis = unstack_params->axis();
       }
       *builtin_data = reinterpret_cast<void*>(params);
       break;

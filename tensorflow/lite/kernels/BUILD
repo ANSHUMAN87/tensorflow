@@ -213,6 +213,7 @@ cc_library(
         "split_v.cc",
         "squared_difference.cc",
         "squeeze.cc",
+        "stack.cc",
         "strided_slice.cc",
         "sub.cc",
         "svdf.cc",
@@ -224,6 +225,7 @@ cc_library(
         "unidirectional_sequence_rnn.cc",
         "unique.cc",
         "unpack.cc",
+        "unstack.cc",
         "zeros_like.cc",
     ],
     hdrs = [
@@ -1136,6 +1138,19 @@ tf_cc_test(
 )
 
 tf_cc_test(
+    name = "stack_test",
+    size = "small",
+    srcs = ["stack_test.cc"],
+    deps = [
+        ":builtin_ops",
+        "//tensorflow/lite:framework",
+        "//tensorflow/lite/c:c_api_internal",
+        "//tensorflow/lite/kernels:test_util",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+tf_cc_test(
     name = "one_hot_test",
     size = "small",
     srcs = ["one_hot_test.cc"],
@@ -1164,6 +1179,19 @@ tf_cc_test(
     name = "unpack_test",
     size = "small",
     srcs = ["unpack_test.cc"],
+    deps = [
+        ":builtin_ops",
+        "//tensorflow/lite:builtin_op_data",
+        "//tensorflow/lite:framework",
+        "//tensorflow/lite/kernels:test_util",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+tf_cc_test(
+    name = "unstack_test",
+    size = "small",
+    srcs = ["unstack_test.cc"],
     deps = [
         ":builtin_ops",
         "//tensorflow/lite:builtin_op_data",
