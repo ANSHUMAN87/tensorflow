@@ -196,8 +196,6 @@ TfLiteRegistration* Register_CONCATENATION_GENERIC_OPT() {
 }
 
 TfLiteRegistration* Register_CONCATENATION() {
-  // TODO(ahentz): It turns out the two versions of Concatenation are almost
-  // identical, so we should consider removing one.
   return Register_CONCATENATION_GENERIC_OPT();
 }
 
