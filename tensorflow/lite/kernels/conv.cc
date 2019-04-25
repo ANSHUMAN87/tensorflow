@@ -267,7 +267,7 @@ TfLiteStatus Prepare(KernelType kernel_type, TfLiteContext* context,
   // The multi-threaded kernel supports neither dilation nor hybrid kernels.
   data->supports_multithreaded_kernel =
       (kernel_type == kMultithreadOptimized) &&
-      (context->recommended_num_threads != 1) && !is_hybrid &&
+      (context->recommended_num_threads > 1) && !is_hybrid &&
       (params->dilation_width_factor == 1) &&
       (params->dilation_height_factor == 1);
 
